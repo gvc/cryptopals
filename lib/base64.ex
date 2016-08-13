@@ -1,9 +1,10 @@
 defmodule Cryptopals.Base64 do
+  alias Cryptopals.Hex
   @code to_char_list("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
 
   def encode_hex(hex_string) do
     hex_string
-    |> hex_to_bit_list
+    |> Hex.to_bit_list
     |> encode_bit_list
   end
 
@@ -51,15 +52,6 @@ defmodule Cryptopals.Base64 do
     end)
 
     to_string(base64)
-  end
-
-  defp hex_to_bit_list(hex_string) do
-    hex_string
-    |> String.graphemes
-    |> Enum.flat_map(fn(codepoint) ->
-      {n, _} = Integer.parse(codepoint, 16)
-      Enum.take([0,0,0,0] ++ Integer.digits(n, 2), -4)
-    end)
   end
 
   defp ascii_to_bit_list(str) do
