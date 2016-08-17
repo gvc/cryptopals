@@ -14,5 +14,4 @@ defmodule Cryptopals.Xor do
       :error
     end
   end
-
 end
