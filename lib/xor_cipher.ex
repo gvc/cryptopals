@@ -1,29 +1,27 @@
 defmodule Cryptopals.XorCipher do
   alias Cryptopals.Xor
   alias Cryptopals.Hex
+  alias Cryptopals.BitRepresentation
 
-  # @hex_chars to_char_list("01234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-=!@#$")
   @chars 0..255
 
   def decrypt(hex_string) do
     @chars
     |> Enum.map(fn(char) -> decrypt_against(hex_string, char) end)
-    |> Enum.map(fn(hex) -> Hex.to_ascii(hex) end)
+    |> Enum.map(&Hex.to_ascii/1)
     |> score_alternatives([])
     |> Enum.sort_by(fn({_alternative, score}) -> score end)
-    |> Enum.map(fn({alternative, _score}) -> alternative end)
     |> Enum.reverse
     |> Enum.at(0)
   end
 
   defp decrypt_against(hex_string, char) do
-    # Tenho que gerar uma string com o mesmo número de bits que a hex_string
     char_string =
       hex_string
       |> String.graphemes
-      |> Enum.flat_map(fn(_grapheme) -> Cryptopals.BitRepresentation.from_ascii([char]) end)
+      |> Enum.flat_map(fn(_grapheme) -> BitRepresentation.from_ascii([char]) end)
       |> Enum.chunk(4, 4)
-      |> Enum.flat_map(&Cryptopals.BitRepresentation.to_hex/1)
+      |> Enum.flat_map(&BitRepresentation.to_hex/1)
       |> to_string
 
     Xor.hex_xor(hex_string, String.slice(char_string, 0, String.length(hex_string)))
@@ -40,16 +38,18 @@ defmodule Cryptopals.XorCipher do
   end
 
   defp score_alternative(alternative) do
-    ordered_letters = String.graphemes("etaoinshrdlucmfwypvb")
+    scores = %{
+      "e" => 26, "t" => 25, "a" => 24, "o" => 23, "i" => 22, "n" => 21, "s" => 20,
+      "h" => 19, "r" => 18, "d" => 17, "l" => 16, "u" => 15, "c" => 14, "m" => 13,
+      "f" => 12, "w" => 11, "y" => 10, "p" => 9, "v" => 8, "b" => 7, "g" => 6,
+      "k" => 5, "j" => 4, "q" => 3, "x" => 2, "z" => 1
+    }
+
     alternative
     |> String.downcase
     |> String.graphemes
     |> Enum.reduce(0, fn(x, acc) ->
-      index = Enum.find_index(ordered_letters, fn(l) ->
-        x == l
-      end) || 26
-
-      acc + (26 - index)
+      acc + (Map.get(scores, x) || 0)
     end)
   end
 end
